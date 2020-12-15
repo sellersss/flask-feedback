@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, flash, redirect, session
 from forms import RegisterForm, LoginForm
 from models import db, connect_db, Users
+from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
 
@@ -42,11 +43,19 @@ def register():
 
         # Registering a user
         user = Users.register(username, password, email, first_name, last_name)
-        session["username"] = user.username
         db.session.add(user)
-        db.session.commit()
 
-    return render_template('register.html', form=form)
+        # Handle non-unique username
+        try:
+            db.session.commit()
+        except IntegrityError:
+            form.username.errors.append(
+                'Username already exists, please choose another one.')
+            return render_template('register.html', form=form)
+
+        return redirect('/secret')
+
+    return render_template('login.html', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -67,18 +76,32 @@ def login():
         # Authenticating a user
         user = Users.authenticate(username, password)
         if user:
-            session['username'] = user.username
+            session['current_user'] = user.username
             return redirect('/secret')
-        flash('Bad username or password.', 'danger')
+        else:
+            flash('Incorrect username or password. Please try again.', 'danger')
 
     return render_template('login.html', form=form)
 
 
-@app.route('/secret')
+@ app.route('/secret')
 def secret():
     """Secret page.
 
     Only for logged in users.
     """
 
-    return 'You made it!'
+    if session.get('current_user', None):
+        return 'you made it!'
+    return redirect('/')
+
+
+@ app.route('/logout')
+def logout():
+    """Logout a user.
+
+    Logs user out, disabling access to /secret.
+    """
+
+    session.pop('username')
+    return redirect('/')
