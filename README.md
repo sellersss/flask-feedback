@@ -1,4 +1,4 @@
 # Flask Feedback
 ## UI
-    - Bootstrap 5
-    - Darkly theme from [Bootswatch](https://bootswatch.com/darkly/).
+- Bootstrap 5
+- Darkly theme from [Bootswatch](https://bootswatch.com/darkly/).
