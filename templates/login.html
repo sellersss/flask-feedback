@@ -16,7 +16,7 @@
                     {% for field in form if field.widget.input_type != 'hidden' %}
                     <div class="form-group mb-3">
                         {{field.label}}
-                        {{field(class_="form-control")}}
+                        {{field(class_='form-control')}}
                         {% for error in field.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}

@@ -11,8 +11,9 @@
 </head>
 
 <body style="overflow-x: hidden !important;">
-    <div class="row justify-content-center my-5">
-        <h1 class="text-center">{% block header %}{% endblock %}</h1>
+    <div class="row justify-content-center my-5 text-center ">
+        <h1 class="mb-0">{% block header %}{% endblock %}</h1>
+        <p class="text-muted">{% block subtitle %}{% endblock %}</p>
     </div>
     <div class="container">
         {% block content %}
