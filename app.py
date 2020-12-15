@@ -1,6 +1,6 @@
 from flask import Flask, redirect, render_template, flash, session
-from forms import RegisterForm, LoginForm
-from models import db, connect_db, Users
+from forms import RegisterForm, LoginForm, FeedbackForm
+from models import Feedback, db, connect_db, Users
 from sqlalchemy.exc import IntegrityError
 
 app = Flask(__name__)
@@ -77,6 +77,7 @@ def login():
         user = Users.authenticate(username, password)
         if user:
             session['username'] = user.username
+
             return redirect(f'/users/{user.username}')
         else:
             flash('Incorrect username or password. Please try again.', 'danger')
@@ -84,7 +85,7 @@ def login():
     return render_template('login.html', form=form)
 
 
-@ app.route('/users/<username>')
+@app.route('/users/<username>')
 def user_info(username):
     """User info page.
 
@@ -94,11 +95,89 @@ def user_info(username):
     current_username = session.get('username', None)
     if current_username and current_username == username:
         current_user = Users.query.filter_by(username=current_username).one()
+
         return render_template('user.html', user=current_user)
     return redirect('/')
 
 
-@ app.route('/logout')
+@app.route('/users/<username>/delete', methods=['POST'])
+def user_delete(username):
+    """Removes a users.
+
+    First removes a user and then logs the user out.
+    """
+
+    current_username = session.get('username', None)
+    if current_username and current_username == username:
+        current_user = Users.query.filter_by(username=current_username).one()
+
+        db.session.delete(current_user)
+        db.session.commit()
+
+        return redirect('logout')
+    return redirect(f'/users/{username}')
+
+
+@app.route('/users/<username>/feedback/add', methods=['GET', 'POST'])
+def feedback_add(username):
+    """Add feedback.
+
+    Displays the add feedback form and posts it to the database on submit.
+    """
+
+    current_username = session.get('username', None)
+    if current_username and current_username == username:
+        form = FeedbackForm()
+        if form.validate_on_submit():
+            title = form.title.data
+            content = form.content.data
+            feedback = Feedback(title=title,
+                                content=content,
+                                username=current_username)
+
+            db.session.add(feedback)
+            db.session.commit()
+
+            return redirect(f'/users/{username}')
+        return render_template('feedback_add.html', form=form, user=current_username)
+
+
+@app.route('/feedback/<int:feedback_id>/feedback/update', methods=['GET', 'POST'])
+def feedback_update(feedback_id):
+    """"""
+
+    current_username = session.get('username', None)
+    feedback = Feedback.query.get_or_404(feedback_id)
+    if current_username and current_username == feedback.username:
+        form = FeedbackForm(obj=feedback)
+        if form.validate_on_submit():
+            feedback.title = form.title.data
+            feedback.content = form.content.data
+
+            db.session.add(feedback)
+            db.session.commit()
+
+            return redirect(f'/users/{current_username}')
+        return render_template('feedback_edit.html', form=form, user=current_username, feedback=feedback)
+
+
+@app.route("/feedback/<int:feedback_id>/delete", methods=["POST"])
+def delete_feedback(feedback_id):
+    """Delete feedback.
+
+    Removes a feedback object from database through a post request.
+    """
+
+    current_username = session.get("username", None)
+    feedback = Feedback.query.get_or_404(feedback_id)
+    if current_username and current_username == feedback.username:
+        db.session.delete(feedback)
+        db.session.commit()
+
+        return redirect(f"/users/{current_username}")
+
+
+@app.route('/logout')
 def logout():
     """Logout a user.
 
