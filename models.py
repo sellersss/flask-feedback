@@ -12,7 +12,7 @@ class Users(db.Model):
     Includes username (PK), password, email, first name, and last name.
     """
 
-    __tablename__ = 'user'
+    __tablename__ = 'users'
 
     username = db.Column(db.VARCHAR(20),
                          primary_key=True,
@@ -39,6 +39,7 @@ class Users(db.Model):
                    first_name=first_name,
                    last_name=last_name)
 
+    @classmethod
     def authenticate(cls, username, password):
         """Login authentication.
 
@@ -56,3 +57,18 @@ class Users(db.Model):
 def connect_db(app):
     db.app = app
     db.init_app(app)
+
+
+class Feedback(db.Model):
+    """Feedback schema.
+
+    Includes id, title, content, and username of feedback writer.
+    """
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    title = db.Column(db.VARCHAR(100), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    username = db.Column(
+        db.VARCHAR(20),
+        db.ForeignKey('users.username'),
+        nullable=False)
