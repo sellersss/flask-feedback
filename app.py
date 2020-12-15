@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, flash, redirect, session
+from flask import Flask, redirect, render_template, flash, session
 from forms import RegisterForm, LoginForm
 from models import db, connect_db, Users
 from sqlalchemy.exc import IntegrityError
@@ -53,9 +53,9 @@ def register():
                 'Username already exists, please choose another one.')
             return render_template('register.html', form=form)
 
-        return redirect('/secret')
+        return redirect(f'/users/{username}')
 
-    return render_template('login.html', form=form)
+    return render_template('register.html', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -76,23 +76,25 @@ def login():
         # Authenticating a user
         user = Users.authenticate(username, password)
         if user:
-            session['current_user'] = user.username
-            return redirect('/secret')
+            session['username'] = user.username
+            return redirect(f'/users/{user.username}')
         else:
             flash('Incorrect username or password. Please try again.', 'danger')
 
     return render_template('login.html', form=form)
 
 
-@ app.route('/secret')
-def secret():
-    """Secret page.
+@ app.route('/users/<username>')
+def user_info(username):
+    """User info page.
 
-    Only for logged in users.
+    Only for logged in users and displays all user details but their password.
     """
 
-    if session.get('current_user', None):
-        return 'you made it!'
+    current_username = session.get('username', None)
+    if current_username and current_username == username:
+        current_user = Users.query.filter_by(username=current_username).one()
+        return render_template('user.html', user=current_user)
     return redirect('/')
 
 
