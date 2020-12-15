@@ -22,3 +22,39 @@ class Users(db.Model):
     email = db.Column(db.String(50), nullable=False, unique=True)
     first_name = db.Column(db.String(30), nullable=False, unique=True)
     last_name = db.Column(db.String(30), nullable=False, unique=True)
+
+    @classmethod
+    def register(cls, username, password, email, first_name, last_name):
+        """Registers a new user.
+
+        Encrypts the password before being stored in database using bcrypt.
+        """
+
+        hashed = bcrypt.generate_password_hash(password)
+        hashed_utf8 = hashed.decode('utf8')
+
+        return cls(username=username,
+                   password=hashed_utf8,
+                   email=email,
+                   first_name=first_name,
+                   last_name=last_name)
+
+    def authenticate(cls, username, password):
+        """Login authentication.
+
+        Authenticates a username and password by checking if the password hash
+        is the same as the one stored.
+        """
+
+        user = cls.query.filter_by(username=username).one_or_none()
+        if user:
+            hashed = user.password
+            if bcrypt.check_password_hash(hashed, password):
+                return user
+        else:
+            return False
+
+
+def connect_db(app):
+    db.app = app
+    db.init_app(app)
