@@ -14,14 +14,14 @@ class Users(db.Model):
 
     __tablename__ = 'user'
 
-    username = db.Column(db.String(20),
+    username = db.Column(db.VARCHAR(20),
                          primary_key=True,
                          nullable=False,
                          unique=True)
     password = db.Column(db.Text, nullable=False)
-    email = db.Column(db.String(50), nullable=False, unique=True)
-    first_name = db.Column(db.String(30), nullable=False, unique=True)
-    last_name = db.Column(db.String(30), nullable=False, unique=True)
+    email = db.Column(db.VARCHAR(50), nullable=False, unique=True)
+    first_name = db.Column(db.VARCHAR(30), nullable=False)
+    last_name = db.Column(db.VARCHAR(30), nullable=False)
 
     @classmethod
     def register(cls, username, password, email, first_name, last_name):
@@ -46,11 +46,9 @@ class Users(db.Model):
         is the same as the one stored.
         """
 
-        user = cls.query.filter_by(username=username).one_or_none()
-        if user:
-            hashed = user.password
-            if bcrypt.check_password_hash(hashed, password):
-                return user
+        user = Users.query.filter_by(username=username).one_or_none()
+        if user and bcrypt.check_password_hash(user.password, password):
+            return user
         else:
             return False
 
