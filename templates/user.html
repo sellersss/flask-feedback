@@ -4,7 +4,7 @@
 {% block header %} {{ user.username.capitalize() }}'s Details {% endblock %}
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-8">
+    <div class="col-lg-6 col-sm-10">
         <div class="card">
             <div class="card-body">
                 <div class="row">
@@ -20,26 +20,29 @@
                 </div>
             </div>
         </div>
-        <br />
-        {% if feedback %}
+        <hr />
         <h5>Feedback</h5>
         {% for feedback in user.feedbacks %}
-        <div class="card">
+        <div class="card bg-light">
             <div class="card-body">
-                <h5 class="card-title">{{ feedback.title }}</h5>
-                <p class="card-text">{{ feedback.content }}</p>
+                <h5 class="card-title text-dark">{{ feedback.title }}</h5>
+                <p class="card-text text-muted">{{ feedback.content }}</p>
             </div>
         </div>
         {% endfor %}
-        {% endif %}
+        <hr>
         <div class="row justify-content-center">
             <div class="col-12 text-center">
-                <a class="btn btn-sm btn-primary" href="/users/{{ user.username }}/feedback/add">
-                    Add Feedback
-                </a>
-                <a class="btn btn-sm btn-danger" href="/users/{{ user.username }}/delete">
-                    Delete Account
-                </a>
+                <form>
+                    <button type="submit" class="btn btn-sm btn-primary"
+                        formaction="/users/{{ user.username }}/feedback/add" formmethod="GET">
+                        Add Feedback
+                    </button>
+                    <button type="submit" class="btn btn-sm btn-danger" formaction="/users/{{ user.username }}/delete"
+                        formmethod="POST">
+                        Delete Account
+                    </button>
+                </form>
             </div>
         </div>
     </div>
